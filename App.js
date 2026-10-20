@@ -1,5 +1,10 @@
-import EventsScreen from "./src/screens/EventsScreen";
+import { NavigationContainer } from "@react-navigation/native";
+import AppNavigator from "./src/navigation/AppNavigator";
 
 export default function App() {
-  return <EventsScreen />;
+  return (
+    <NavigationContainer>
+      <AppNavigator />
+    </NavigationContainer>
+  );
 }
