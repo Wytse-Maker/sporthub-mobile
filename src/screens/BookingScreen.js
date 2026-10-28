@@ -1,12 +1,42 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useState } from "react";
+import createBooking from "../services/bookingService";
 
-const BookingScreen = ({ route }) => {
+const BookingScreen = ({ route, navigation }) => {
   const { event } = route.params;
 
   const [ticketCount, setTicketCount] = useState(1);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState("");
+
   const maxTickets = Math.min(4, event.availableTickets);
+
+  const handleConfirmBooking = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const booking = await createBooking(event.id, ticketCount);
+
+      navigation.navigate("BookingConfirmation", {
+        event: event,
+        numberOfTickets: ticketCount,
+        booking: booking,
+      });
+    } catch (error) {
+      console.error("Booking failed:", error);
+
+      setErrorMessage("Booking could not be completed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -46,16 +76,18 @@ const BookingScreen = ({ route }) => {
         Maximum {maxTickets} tickets for this booking
       </Text>
 
+      {errorMessage !== "" && (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      )}
+
       <Pressable
-        style={styles.confirmButton}
-        onPress={() =>
-          console.log("Booking:", {
-            eventId: event.id,
-            numberOfTickets: ticketCount,
-          })
-        }
+        style={[styles.confirmButton, isSubmitting && styles.disabledButton]}
+        disabled={isSubmitting}
+        onPress={handleConfirmBooking}
       >
-        <Text style={styles.confirmButtonText}>Confirm booking</Text>
+        <Text style={styles.confirmButtonText}>
+          {isSubmitting ? "Booking..." : "Confirm booking"}
+        </Text>
       </Pressable>
     </View>
   );
@@ -122,6 +154,14 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  errorText: {
+    marginTop: 20,
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

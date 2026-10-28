@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import EventsScreen from "../screens/EventsScreen";
 import EventDetailScreen from "../screens/EventDetailScreen";
 import BookingScreen from "../screens/BookingScreen";
+import BookingConfirmationScreen from "../screens/BookingConfirmationScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -28,7 +29,14 @@ const AppNavigator = () => {
         component={BookingScreen}
         options={{ title: "Book Tickets" }}
       />
+
+      <Stack.Screen
+        name="BookingConfirmation"
+        component={BookingConfirmationScreen}
+        options={{ title: "Booking Confirmed" }}
+      />
     </Stack.Navigator>
   );
 };
+
 export default AppNavigator;
