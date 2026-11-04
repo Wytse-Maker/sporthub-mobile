@@ -1,58 +1,53 @@
 import { View, Text, StyleSheet, TextInput, FlatList } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EventCard from "../components/EventCard";
-
-const sampleEvents = [
-  {
-    id: "1",
-    homeTeamName: "Boston Celtics",
-    awayTeamName: "Los Angeles Lakers",
-    venueName: "Boston Garden",
-    date: "2026-11-15",
-    time: "20:00",
-    capacity: 20000,
-    reservedTickets: 14000,
-    availableTickets: 6000,
-    occupancyPercentage: 70,
-    soldOut: false,
-  },
-  {
-    id: "2",
-    homeTeamName: "Chicago Bulls",
-    awayTeamName: "Detroit Pistons",
-    venueName: "United Center",
-    date: "2026-11-18",
-    time: "19:30",
-    capacity: 21000,
-    reservedTickets: 21000,
-    availableTickets: 0,
-    occupancyPercentage: 100,
-    soldOut: true,
-  },
-  {
-    id: "3",
-    homeTeamName: "Denver Nuggets",
-    awayTeamName: "Minnesota Timberwolves",
-    venueName: "Ball Arena",
-    date: "2026-11-22",
-    time: "21:00",
-    capacity: 19000,
-    reservedTickets: 9500,
-    availableTickets: 9500,
-    occupancyPercentage: 50,
-    soldOut: false,
-  },
-];
+import getEvents from "../services/eventService";
 
 const EventsScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const filteredEvents = sampleEvents.filter(
+  useEffect(() => {
+    const loadEvents = async () => {
+      setErrorMessage("");
+
+      try {
+        const data = await getEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+        setErrorMessage("Events could not be loaded. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
+
+  const filteredEvents = events.filter(
     (item) =>
       item.homeTeamName.toLowerCase().includes(searchText.toLowerCase()) ||
       item.awayTeamName.toLowerCase().includes(searchText.toLowerCase()) ||
       item.venueName.toLowerCase().includes(searchText.toLowerCase()),
   );
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading events...</Text>
+      </View>
+    );
+  }
+  if (errorMessage !== "") {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -67,11 +62,15 @@ const EventsScreen = ({ navigation }) => {
 
       <FlatList
         data={filteredEvents}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <EventCard
             event={item}
-            onPress={() => navigation.navigate("EventDetail", { event: item })}
+            onPress={() =>
+              navigation.navigate("EventDetail", {
+                event: item,
+              })
+            }
           />
         )}
       />
@@ -96,6 +95,15 @@ const styles = StyleSheet.create({
     borderColor: "#999",
     borderRadius: 8,
     margin: 10,
+  },
+  loadingText: {
+    margin: 20,
+    fontSize: 16,
+  },
+  errorText: {
+    margin: 20,
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
