@@ -6,4 +6,9 @@ const getEvents = async () => {
   return data.content;
 };
 
+const getEventAvailability = async (sportEventId) => {
+  return apiRequest(`/api/sport-events/${sportEventId}/availability`);
+};
+
+export { getEventAvailability };
 export default getEvents;

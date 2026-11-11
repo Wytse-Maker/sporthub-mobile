@@ -1,8 +1,42 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useEffect, useState } from "react";
 import EventAvailability from "../components/EventAvailability";
+import { getEventAvailability } from "../services/eventService";
 
 const EventDetailScreen = ({ route, navigation }) => {
   const { event } = route.params;
+
+  const [availability, setAvailability] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [date = "", timeWithSeconds = ""] = (event.startTime ?? "").split("T");
+  const time = timeWithSeconds.slice(0, 5);
+
+  useEffect(() => {
+    const loadAvailability = async () => {
+      setErrorMessage("");
+
+      try {
+        const data = await getEventAvailability(event.id);
+        setAvailability(data);
+      } catch (error) {
+        console.error("Failed to load availability:", error);
+        setErrorMessage("Availability could not be loaded.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAvailability();
+  }, [event.id]);
+
+  const eventWithAvailability = availability
+    ? {
+        ...event,
+        ...availability,
+      }
+    : event;
 
   return (
     <View style={styles.container}>
@@ -12,25 +46,36 @@ const EventDetailScreen = ({ route, navigation }) => {
 
       <Text style={styles.venue}>{event.venueName}</Text>
 
-      <Text style={styles.info}>Date: {event.date}</Text>
+      <Text style={styles.info}>Date: {date}</Text>
+      <Text style={styles.info}>Time: {time}</Text>
+      <Text style={styles.info}>
+        Ticket price: €{Number(event.ticketPrice).toFixed(2)}
+      </Text>
 
-      <Text style={styles.info}>Time: {event.time}</Text>
+      {isLoading && <Text style={styles.info}>Loading availability...</Text>}
 
-      <EventAvailability event={event} />
+      {errorMessage !== "" && <Text style={styles.info}>{errorMessage}</Text>}
 
-      <Pressable
-        style={[styles.bookButton, event.soldOut && styles.disabledButton]}
-        disabled={event.soldOut}
-        onPress={() =>
-          navigation.navigate("Booking", {
-            event: event,
-          })
-        }
-      >
-        <Text style={styles.bookButtonText}>
-          {event.soldOut ? "Sold out" : "Book tickets"}
-        </Text>
-      </Pressable>
+      {availability && <EventAvailability event={eventWithAvailability} />}
+
+      {availability && (
+        <Pressable
+          style={[
+            styles.bookButton,
+            availability.soldOut && styles.disabledButton,
+          ]}
+          disabled={availability.soldOut}
+          onPress={() =>
+            navigation.navigate("Booking", {
+              event: eventWithAvailability,
+            })
+          }
+        >
+          <Text style={styles.bookButtonText}>
+            {availability.soldOut ? "Sold out" : "Book tickets"}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 };
