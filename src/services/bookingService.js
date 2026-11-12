@@ -14,4 +14,9 @@ const createBooking = async (eventId, numberOfTickets) => {
   });
 };
 
+const getBookingsByUserId = async (userId) => {
+  return apiRequest(`/api/bookings/users/${userId}`);
+};
+
+export { getBookingsByUserId };
 export default createBooking;

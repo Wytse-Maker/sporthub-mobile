@@ -4,6 +4,7 @@ import EventsScreen from "../screens/EventsScreen";
 import EventDetailScreen from "../screens/EventDetailScreen";
 import BookingScreen from "../screens/BookingScreen";
 import BookingConfirmationScreen from "../screens/BookingConfirmationScreen";
+import MyBookingsScreen from "../screens/MyBookingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,12 @@ const AppNavigator = () => {
         name="BookingConfirmation"
         component={BookingConfirmationScreen}
         options={{ title: "Booking Confirmed" }}
+      />
+
+      <Stack.Screen
+        name="MyBookings"
+        component={MyBookingsScreen}
+        options={{ title: "My Bookings" }}
       />
     </Stack.Navigator>
   );
