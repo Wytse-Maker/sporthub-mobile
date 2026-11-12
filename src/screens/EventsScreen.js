@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TextInput, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  FlatList,
+  Pressable,
+} from "react-native";
+
 import { useState, useEffect } from "react";
 import EventCard from "../components/EventCard";
 import getEvents from "../services/eventService";
@@ -41,6 +49,7 @@ const EventsScreen = ({ navigation }) => {
       </View>
     );
   }
+
   if (errorMessage !== "") {
     return (
       <View style={styles.container}>
@@ -52,6 +61,13 @@ const EventsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>SportHub Events</Text>
+
+      <Pressable
+        style={styles.bookingsButton}
+        onPress={() => navigation.navigate("MyBookings")}
+      >
+        <Text style={styles.bookingsButtonText}>My Bookings</Text>
+      </Pressable>
 
       <TextInput
         value={searchText}
@@ -83,12 +99,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
+
   title: {
     fontSize: 25,
     fontWeight: "bold",
     marginTop: 10,
     marginHorizontal: 10,
   },
+
+  bookingsButton: {
+    marginHorizontal: 10,
+    marginTop: 10,
+    padding: 12,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  bookingsButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
   searchbar: {
     padding: 10,
     borderWidth: 1,
@@ -96,10 +129,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     margin: 10,
   },
+
   loadingText: {
     margin: 20,
     fontSize: 16,
   },
+
   errorText: {
     margin: 20,
     fontSize: 16,
