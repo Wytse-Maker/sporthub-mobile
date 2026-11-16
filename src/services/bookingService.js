@@ -18,5 +18,11 @@ const getBookingsByUserId = async (userId) => {
   return apiRequest(`/api/bookings/users/${userId}`);
 };
 
-export { getBookingsByUserId };
+const cancelBooking = async (bookingId) => {
+  return apiRequest(`/api/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+  });
+};
+
+export { getBookingsByUserId, cancelBooking };
 export default createBooking;
