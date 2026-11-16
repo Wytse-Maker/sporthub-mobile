@@ -13,6 +13,9 @@ const EventDetailScreen = ({ route, navigation }) => {
   const [date = "", timeWithSeconds = ""] = (event.startTime ?? "").split("T");
   const time = timeWithSeconds.slice(0, 5);
 
+  const eventDateTime = new Date(event.startTime);
+  const isPastEvent = eventDateTime < new Date();
+
   useEffect(() => {
     const loadAvailability = async () => {
       setErrorMessage("");
@@ -48,6 +51,7 @@ const EventDetailScreen = ({ route, navigation }) => {
 
       <Text style={styles.info}>Date: {date}</Text>
       <Text style={styles.info}>Time: {time}</Text>
+
       <Text style={styles.info}>
         Ticket price: €{Number(event.ticketPrice).toFixed(2)}
       </Text>
@@ -62,9 +66,9 @@ const EventDetailScreen = ({ route, navigation }) => {
         <Pressable
           style={[
             styles.bookButton,
-            availability.soldOut && styles.disabledButton,
+            (availability.soldOut || isPastEvent) && styles.disabledButton,
           ]}
-          disabled={availability.soldOut}
+          disabled={availability.soldOut || isPastEvent}
           onPress={() =>
             navigation.navigate("Booking", {
               event: eventWithAvailability,
@@ -72,7 +76,11 @@ const EventDetailScreen = ({ route, navigation }) => {
           }
         >
           <Text style={styles.bookButtonText}>
-            {availability.soldOut ? "Sold out" : "Book tickets"}
+            {isPastEvent
+              ? "Event ended"
+              : availability.soldOut
+                ? "Sold out"
+                : "Book tickets"}
           </Text>
         </Pressable>
       )}
