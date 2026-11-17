@@ -17,21 +17,22 @@ const EventsScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const loadEvents = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const data = await getEvents();
+      setEvents(data);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+      setErrorMessage("Events could not be loaded. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadEvents = async () => {
-      setErrorMessage("");
-
-      try {
-        const data = await getEvents();
-        setEvents(data);
-      } catch (error) {
-        console.error("Failed to load events:", error);
-        setErrorMessage("Events could not be loaded. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadEvents();
   }, []);
 
@@ -54,6 +55,10 @@ const EventsScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{errorMessage}</Text>
+
+        <Pressable style={styles.retryButton} onPress={loadEvents}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
       </View>
     );
   }
@@ -79,6 +84,9 @@ const EventsScreen = ({ navigation }) => {
       <FlatList
         data={filteredEvents}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No events found.</Text>
+        }
         renderItem={({ item }) => (
           <EventCard
             event={item}
@@ -139,6 +147,25 @@ const styles = StyleSheet.create({
     margin: 20,
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  retryButton: {
+    marginHorizontal: 20,
+    padding: 12,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  emptyText: {
+    margin: 20,
+    fontSize: 16,
   },
 });
 

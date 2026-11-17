@@ -88,6 +88,9 @@ const MyBookingsScreen = () => {
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>You don't have any bookings yet.</Text>
+        }
         renderItem={({ item }) => {
           const [date = "", timeWithSeconds = ""] = (
             item.event?.startTime ?? ""
@@ -173,6 +176,11 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  emptyText: {
+    fontSize: 16,
+    marginTop: 20,
   },
 });
 
