@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 const BookingConfirmationScreen = ({ route, navigation }) => {
   const { event, numberOfTickets, booking } = route.params;
 
+  const totalPrice = event.ticketPrice * numberOfTickets;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Booking Confirmed</Text>
@@ -15,11 +17,20 @@ const BookingConfirmationScreen = ({ route, navigation }) => {
         {event.homeTeamName} vs {event.awayTeamName}
       </Text>
 
+      <Text style={styles.info}>Venue: {event.venueName}</Text>
+
+      <Text style={styles.info}>
+        Price per ticket: €{Number(event.ticketPrice).toFixed(2)}
+      </Text>
+
       <Text style={styles.info}>Tickets: {numberOfTickets}</Text>
+
+      <Text style={styles.totalPrice}>
+        Total price: €{totalPrice.toFixed(2)}
+      </Text>
 
       <Text style={styles.info}>Status: {booking.status}</Text>
 
-      <Text style={styles.info}>Venue: {event.venueName}</Text>
       <Pressable
         style={styles.backButton}
         onPress={() => navigation.popToTop()}
@@ -51,6 +62,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
+
+  totalPrice: {
+    marginTop: 15,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
   backButton: {
     marginTop: 30,
     padding: 15,

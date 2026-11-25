@@ -6,12 +6,12 @@ const BookingScreen = ({ route, navigation }) => {
   const { event } = route.params;
 
   const [ticketCount, setTicketCount] = useState(1);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
 
   const maxTickets = Math.min(4, event.availableTickets);
+
+  const totalPrice = event.ticketPrice * ticketCount;
 
   const handleConfirmBooking = async () => {
     if (isSubmitting) {
@@ -46,6 +46,10 @@ const BookingScreen = ({ route, navigation }) => {
         {event.homeTeamName} vs {event.awayTeamName}
       </Text>
 
+      <Text style={styles.priceText}>
+        Price per ticket: €{Number(event.ticketPrice).toFixed(2)}
+      </Text>
+
       <View style={styles.counter}>
         <Pressable
           style={styles.counterButton}
@@ -74,6 +78,10 @@ const BookingScreen = ({ route, navigation }) => {
 
       <Text style={styles.availabilityText}>
         Maximum {maxTickets} tickets for this booking
+      </Text>
+
+      <Text style={styles.totalPriceText}>
+        Total price: €{totalPrice.toFixed(2)}
       </Text>
 
       {errorMessage !== "" && (
@@ -111,6 +119,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  priceText: {
+    marginTop: 15,
+    fontSize: 16,
+  },
+
   counter: {
     flexDirection: "row",
     alignItems: "center",
@@ -143,6 +156,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
+  totalPriceText: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
   confirmButton: {
     marginTop: 30,
     padding: 15,
@@ -156,9 +175,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+
   disabledButton: {
     opacity: 0.5,
   },
+
   errorText: {
     marginTop: 20,
     fontSize: 14,
