@@ -8,43 +8,50 @@ import { getEventById } from "../services/eventService";
 const MyBookingsScreen = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loadErrorMessage, setLoadErrorMessage] = useState("");
+  const [actionErrorMessage, setActionErrorMessage] = useState("");
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
+
+  const loadBookings = useCallback(async () => {
+    setIsLoading(true);
+    setLoadErrorMessage("");
+
+    try {
+      const data = await getBookingsByUserId(1);
+
+      const bookingsWithEvents = await Promise.all(
+        data.map(async (booking) => {
+          const event = await getEventById(booking.sportEventId);
+
+          return {
+            ...booking,
+            event: event,
+          };
+        }),
+      );
+
+      setBookings(bookingsWithEvents);
+    } catch (error) {
+      console.error("Failed to load bookings:", error);
+      setLoadErrorMessage("Bookings could not be loaded.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      const loadBookings = async () => {
-        setIsLoading(true);
-        setErrorMessage("");
-
-        try {
-          const data = await getBookingsByUserId(1);
-
-          const bookingsWithEvents = await Promise.all(
-            data.map(async (booking) => {
-              const event = await getEventById(booking.sportEventId);
-
-              return {
-                ...booking,
-                event: event,
-              };
-            }),
-          );
-
-          setBookings(bookingsWithEvents);
-        } catch (error) {
-          console.error("Failed to load bookings:", error);
-          setErrorMessage("Bookings could not be loaded.");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
       loadBookings();
-    }, []),
+    }, [loadBookings]),
   );
 
   const handleCancelBooking = async (bookingId) => {
-    setErrorMessage("");
+    if (cancellingBookingId !== null) {
+      return;
+    }
+
+    setCancellingBookingId(bookingId);
+    setActionErrorMessage("");
 
     try {
       const updatedBooking = await cancelBooking(bookingId);
@@ -61,7 +68,9 @@ const MyBookingsScreen = () => {
       );
     } catch (error) {
       console.error("Failed to cancel booking:", error);
-      setErrorMessage("Booking could not be cancelled.");
+      setActionErrorMessage("Booking could not be cancelled.");
+    } finally {
+      setCancellingBookingId(null);
     }
   };
 
@@ -73,10 +82,14 @@ const MyBookingsScreen = () => {
     );
   }
 
-  if (errorMessage !== "") {
+  if (loadErrorMessage !== "") {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{errorMessage}</Text>
+        <Text style={styles.errorText}>{loadErrorMessage}</Text>
+
+        <Pressable style={styles.retryButton} onPress={loadBookings}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
       </View>
     );
   }
@@ -84,6 +97,10 @@ const MyBookingsScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Bookings</Text>
+
+      {actionErrorMessage !== "" && (
+        <Text style={styles.errorText}>{actionErrorMessage}</Text>
+      )}
 
       <FlatList
         data={bookings}
@@ -107,6 +124,7 @@ const MyBookingsScreen = () => {
               <Text style={styles.info}>Venue: {item.event?.venueName}</Text>
 
               <Text style={styles.info}>Date: {date}</Text>
+
               <Text style={styles.info}>Time: {time}</Text>
 
               <Text style={styles.info}>Tickets: {item.numberOfTickets}</Text>
@@ -115,10 +133,18 @@ const MyBookingsScreen = () => {
 
               {item.status === "ACTIVE" && (
                 <Pressable
-                  style={styles.cancelButton}
+                  style={[
+                    styles.cancelButton,
+                    cancellingBookingId === item.id && styles.disabledButton,
+                  ]}
+                  disabled={cancellingBookingId === item.id}
                   onPress={() => handleCancelBooking(item.id)}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel booking</Text>
+                  <Text style={styles.cancelButtonText}>
+                    {cancellingBookingId === item.id
+                      ? "Cancelling..."
+                      : "Cancel booking"}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -173,9 +199,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  retryButton: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  disabledButton: {
+    opacity: 0.5,
+  },
+
   errorText: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 10,
   },
 
   emptyText: {
