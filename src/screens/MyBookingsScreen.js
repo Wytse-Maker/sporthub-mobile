@@ -25,7 +25,7 @@ const MyBookingsScreen = () => {
 
           return {
             ...booking,
-            event: event,
+            event,
           };
         }),
       );
@@ -77,7 +77,7 @@ const MyBookingsScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <Text>Loading bookings...</Text>
+        <Text style={styles.loadingText}>Loading bookings...</Text>
       </View>
     );
   }
@@ -115,8 +115,13 @@ const MyBookingsScreen = () => {
 
           const time = timeWithSeconds.slice(0, 5);
 
+          const ticketPrice = Number(item.event?.ticketPrice ?? 0);
+          const totalPrice = ticketPrice * item.numberOfTickets;
+
+          const isCancelled = item.status === "CANCELLED";
+
           return (
-            <View style={styles.card}>
+            <View style={[styles.card, isCancelled && styles.cancelledCard]}>
               <Text style={styles.matchup}>
                 {item.event?.homeTeamName} vs {item.event?.awayTeamName}
               </Text>
@@ -127,9 +132,24 @@ const MyBookingsScreen = () => {
 
               <Text style={styles.info}>Time: {time}</Text>
 
+              <Text style={styles.info}>
+                Price per ticket: €{ticketPrice.toFixed(2)}
+              </Text>
+
               <Text style={styles.info}>Tickets: {item.numberOfTickets}</Text>
 
-              <Text style={styles.info}>Status: {item.status}</Text>
+              <Text style={styles.totalPrice}>
+                Total price: €{totalPrice.toFixed(2)}
+              </Text>
+
+              <Text
+                style={[
+                  styles.status,
+                  isCancelled ? styles.cancelledStatus : styles.activeStatus,
+                ]}
+              >
+                Status: {item.status}
+              </Text>
 
               {item.status === "ACTIVE" && (
                 <Pressable
@@ -168,11 +188,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  loadingText: {
+    fontSize: 16,
+  },
+
   card: {
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
     borderRadius: 10,
+  },
+
+  cancelledCard: {
+    opacity: 0.6,
   },
 
   matchup: {
@@ -186,8 +214,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
+  totalPrice: {
+    marginTop: 5,
+    marginBottom: 8,
+    fontSize: 17,
+    fontWeight: "bold",
+  },
+
+  status: {
+    marginTop: 5,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  activeStatus: {
+    opacity: 1,
+  },
+
+  cancelledStatus: {
+    opacity: 0.7,
+  },
+
   cancelButton: {
-    marginTop: 10,
+    marginTop: 15,
     padding: 10,
     backgroundColor: "#333",
     borderRadius: 8,

@@ -36,12 +36,39 @@ const EventsScreen = ({ navigation }) => {
     loadEvents();
   }, []);
 
-  const filteredEvents = events.filter(
-    (item) =>
-      item.homeTeamName.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.awayTeamName.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.venueName.toLowerCase().includes(searchText.toLowerCase()),
-  );
+  const now = new Date();
+
+  const filteredEvents = events
+    .filter((item) => {
+      const searchValue = searchText.toLowerCase();
+
+      return (
+        item.homeTeamName.toLowerCase().includes(searchValue) ||
+        item.awayTeamName.toLowerCase().includes(searchValue) ||
+        item.venueName.toLowerCase().includes(searchValue)
+      );
+    })
+    .sort((eventA, eventB) => {
+      const dateA = new Date(eventA.startTime);
+      const dateB = new Date(eventB.startTime);
+
+      const eventAIsPast = dateA < now;
+      const eventBIsPast = dateB < now;
+
+      if (eventAIsPast && !eventBIsPast) {
+        return 1;
+      }
+
+      if (!eventAIsPast && eventBIsPast) {
+        return -1;
+      }
+
+      if (!eventAIsPast && !eventBIsPast) {
+        return dateA - dateB;
+      }
+
+      return dateB - dateA;
+    });
 
   if (isLoading) {
     return (
@@ -84,6 +111,9 @@ const EventsScreen = ({ navigation }) => {
       <FlatList
         data={filteredEvents}
         keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={
+          filteredEvents.length === 0 ? styles.emptyList : undefined
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No events found.</Text>
         }
@@ -161,6 +191,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  emptyList: {
+    flexGrow: 1,
   },
 
   emptyText: {
